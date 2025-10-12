@@ -5,13 +5,99 @@ from typing import List, Dict, Tuple
 from tqdm import tqdm
 
 
+def create_curling_field_template(field_center: Tuple[int, int], scale_cm_per_px: float = 1.0) -> np.ndarray:
+    """
+    Создает полный шаблон поля для кёрлинга согласно официальным правилам.
+    
+    Параметры разметки (в метрах):
+    - tee_to_back = 1.829          # расстояние от центра до наружного края back line
+    - tee_to_hog = 6.401           # расстояние от центра до внутреннего края hog line
+    - line_width = 0.0127          # ширина тонких линий (tee, back)
+    - hog_line_width = 0.1016      # ширина hog line
+    
+    Args:
+        field_center: (x, y) координаты центра поля в пикселях
+        scale_cm_per_px: масштаб - сколько сантиметров в одном пикселе
+        
+    Returns:
+        numpy array с шаблоном поля
+    """
+    # Параметры разметки (в метрах)
+    tee_to_back = 1.829          # расстояние от центра до наружного края back line
+    tee_to_hog = 6.401           # расстояние от центра до внутреннего края hog line
+    line_width = 0.0127          # ширина тонких линий (tee, back)
+    hog_line_width = 0.1016      # ширина hog line
+    
+    # Радиусы домов (внешние края кругов)
+    radii_m = [1.829, 1.219, 0.610, 0.1524]  # 6ft, 4ft, 2ft, 6in
+    colors = ['red', 'white', 'blue', 'white']
+    
+    # Преобразуем в пиксели (метры -> сантиметры -> пиксели)
+    scale_m_per_px = scale_cm_per_px / 100.0
+    radii_px = [int(radius_m / scale_m_per_px) for radius_m in radii_m]
+    
+    # Размеры поля в пикселях
+    field_width_px = int(4.0 / scale_m_per_px)  # 4 метра ширина
+    field_height_px = int((tee_to_back + tee_to_hog + hog_line_width) / scale_m_per_px)
+    
+    # Создаем изображение поля
+    img = np.ones((field_height_px, field_width_px, 3), dtype=np.uint8) * 255
+    
+    # Координаты центра поля
+    cx, cy = field_width_px // 2, int(tee_to_back / scale_m_per_px)
+    
+    # Рисуем концентрические круги дома
+    for radius_px, color in zip(radii_px, colors):
+        if color == 'red':
+            cv2.circle(img, (cx, cy), radius_px, (0, 0, 255), -1, cv2.LINE_AA)  # Красный в BGR
+        elif color == 'white':
+            cv2.circle(img, (cx, cy), radius_px, (255, 255, 255), -1, cv2.LINE_AA)  # Белый в BGR
+        elif color == 'blue':
+            cv2.circle(img, (cx, cy), radius_px, (255, 0, 0), -1, cv2.LINE_AA)  # Синий в BGR
+    
+    # Рисуем контуры кругов
+    for radius_px in radii_px:
+        cv2.circle(img, (cx, cy), radius_px, (0, 0, 0), 2, cv2.LINE_AA)
+    
+    # Tee line (через центр, y = cy)
+    tee_line_width_px = max(1, int(line_width / scale_m_per_px))
+    if tee_line_width_px > 0:
+        tee_line = np.zeros((tee_line_width_px, field_width_px, 3), dtype=np.uint8)
+        y_start = max(0, cy - tee_line_width_px//2)
+        y_end = min(field_height_px, cy + tee_line_width_px//2)
+        if y_end > y_start:
+            img[y_start:y_end, :] = tee_line[:y_end-y_start, :]
+    
+    # Back line (наружный край на y = cy - tee_to_back)
+    back_line_y = cy - int(tee_to_back / scale_m_per_px)
+    back_line_width_px = max(1, int(line_width / scale_m_per_px))
+    if back_line_width_px > 0 and back_line_y >= 0:
+        back_line = np.zeros((back_line_width_px, field_width_px, 3), dtype=np.uint8)
+        y_start = max(0, back_line_y - back_line_width_px//2)
+        y_end = min(field_height_px, back_line_y + back_line_width_px//2)
+        if y_end > y_start:
+            img[y_start:y_end, :] = back_line[:y_end-y_start, :]
+    
+    # Hog line (внутренний край на y = cy + tee_to_hog)
+    hog_line_y = cy + int(tee_to_hog / scale_m_per_px)
+    hog_line_width_px = max(1, int(hog_line_width / scale_m_per_px))
+    if hog_line_width_px > 0 and hog_line_y < field_height_px:
+        hog_line = np.zeros((hog_line_width_px, field_width_px, 3), dtype=np.uint8)
+        y_start = max(0, hog_line_y)
+        y_end = min(field_height_px, hog_line_y + hog_line_width_px)
+        if y_end > y_start:
+            img[y_start:y_end, :] = hog_line[:y_end-y_start, :]
+    
+    # Центральная линия (вертикальная, от back line до hog line)
+    center_line_width = 2
+    cv2.line(img, (cx, back_line_y), (cx, hog_line_y + hog_line_width_px), (0, 0, 0), center_line_width, cv2.LINE_AA)
+    
+    return img
+
+
 def create_curling_house_template(house_center: Tuple[int, int], scale_cm_per_px: float = 1.0) -> np.ndarray:
     """
-    Создает шаблон дома для кёрлинга согласно официальным правилам.
-    
-    Размеры согласно коду пользователя:
-    - Радиусы: 1.829м, 1.219м, 0.610м, 0.1524м (6ft, 4ft, 2ft, 6in)
-    - Цвета: красный, белый, синий, белый
+    Создает шаблон дома для кёрлинга (упрощенная версия для обратной совместимости).
     
     Args:
         house_center: (x, y) координаты центра дома в пикселях
@@ -106,18 +192,18 @@ def create_birdseye_video(stone_tracks: List[Dict], output_dir: str,
     video_path = os.path.join(output_dir, "birdseye_animation.mp4")
     out = cv2.VideoWriter(video_path, fourcc, fps, (w_px, h_px))
     
-    # Создаем шаблон дома
-    house_center = (w_px // 2, int(h_px * 0.6))  # Дом в верхней части поля
+    # Создаем шаблон поля
+    field_center = (w_px // 2, int(h_px * 0.6))  # Поле в верхней части изображения
     
     # Вычисляем масштаб: сколько сантиметров в одном пикселе
     scale_cm_per_px = cw / w_px  # ширина поля в см / ширина изображения в пикселях
-    house_template = create_curling_house_template(house_center, scale_cm_per_px)
+    field_template = create_curling_field_template(field_center, scale_cm_per_px)
     
-    # Накладываем шаблон дома на каждое изображение
-    house_x1 = house_center[0] - house_template.shape[1] // 2
-    house_y1 = house_center[1] - house_template.shape[0] // 2
-    house_x2 = house_x1 + house_template.shape[1]
-    house_y2 = house_y1 + house_template.shape[0]
+    # Накладываем шаблон поля на каждое изображение
+    field_x1 = field_center[0] - field_template.shape[1] // 2
+    field_y1 = field_center[1] - field_template.shape[0] // 2
+    field_x2 = field_x1 + field_template.shape[1]
+    field_y2 = field_y1 + field_template.shape[0]
     
     # Обрабатываем каждый кадр
     with tqdm(total=total_frames, desc="Создание видео", unit="кадр") as pbar:
@@ -125,10 +211,10 @@ def create_birdseye_video(stone_tracks: List[Dict], output_dir: str,
             # Создаем белый фон
             img = np.ones((h_px, w_px, 3), dtype=np.uint8) * 255
             
-            # Накладываем шаблон дома
-            if (house_x1 >= 0 and house_y1 >= 0 and 
-                house_x2 <= w_px and house_y2 <= h_px):
-                img[house_y1:house_y2, house_x1:house_x2] = house_template
+            # Накладываем шаблон поля
+            if (field_x1 >= 0 and field_y1 >= 0 and 
+                field_x2 <= w_px and field_y2 <= h_px):
+                img[field_y1:field_y2, field_x1:field_x2] = field_template
             
             # Рисуем траектории и текущие позиции камней
             for track in stone_tracks:
@@ -222,18 +308,18 @@ def create_birdseye_video_with_legend(stone_tracks: List[Dict], output_dir: str,
     video_path = os.path.join(output_dir, "birdseye_animation_with_legend.mp4")
     out = cv2.VideoWriter(video_path, fourcc, fps, (w_px, h_px))
     
-    # Создаем шаблон дома
-    house_center = (w_px // 2, int(h_px * 0.6))
+    # Создаем шаблон поля
+    field_center = (w_px // 2, int(h_px * 0.6))
     
     # Вычисляем масштаб: сколько сантиметров в одном пикселе
     scale_cm_per_px = cw / w_px  # ширина поля в см / ширина изображения в пикселях
-    house_template = create_curling_house_template(house_center, scale_cm_per_px)
+    field_template = create_curling_field_template(field_center, scale_cm_per_px)
     
-    # Позиция шаблона дома
-    house_x1 = house_center[0] - house_template.shape[1] // 2
-    house_y1 = house_center[1] - house_template.shape[0] // 2
-    house_x2 = house_x1 + house_template.shape[1]
-    house_y2 = house_y1 + house_template.shape[0]
+    # Позиция шаблона поля
+    field_x1 = field_center[0] - field_template.shape[1] // 2
+    field_y1 = field_center[1] - field_template.shape[0] // 2
+    field_x2 = field_x1 + field_template.shape[1]
+    field_y2 = field_y1 + field_template.shape[0]
     
     # Подсчитываем камни по командам
     red_stones = [t for t in stone_tracks if t.get("team") == "red"]
@@ -244,10 +330,10 @@ def create_birdseye_video_with_legend(stone_tracks: List[Dict], output_dir: str,
             # Создаем белый фон
             img = np.ones((h_px, w_px, 3), dtype=np.uint8) * 255
             
-            # Накладываем шаблон дома
-            if (house_x1 >= 0 and house_y1 >= 0 and 
-                house_x2 <= w_px and house_y2 <= h_px):
-                img[house_y1:house_y2, house_x1:house_x2] = house_template
+            # Накладываем шаблон поля
+            if (field_x1 >= 0 and field_y1 >= 0 and 
+                field_x2 <= w_px and field_y2 <= h_px):
+                img[field_y1:field_y2, field_x1:field_x2] = field_template
             
             # Рисуем траектории и позиции камней
             for track in stone_tracks:
