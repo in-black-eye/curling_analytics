@@ -1,0 +1,25 @@
+mean_iou@0.5: 0.000000
+per_class:
+  class_0 (22_keypoints): 0.000000 over 0 matches
+  class_1 (l_hog): 0.000000 over 0 matches
+  class_2 (r_hog): 0.000000 over 0 matches
+  class_3 (l_back): 0.000000 over 0 matches
+  class_4 (r_back): 0.000000 over 0 matches
+  class_5 (l_tee): 0.000000 over 0 matches
+  class_6 (r_tee): 0.000000 over 0 matches
+  class_7 (hog_central): 0.000000 over 0 matches
+  class_8 (p_central): 0.000000 over 0 matches
+  class_9 (center): 0.000000 over 0 matches
+  class_10 (a_central): 0.000000 over 0 matches
+  class_11 (button_ant): 0.000000 over 0 matches
+  class_12 (button_r): 0.000000 over 0 matches
+  class_13 (button_post): 0.000000 over 0 matches
+  class_14 (button_l): 0.000000 over 0 matches
+  class_15 (inner_ant): 0.000000 over 0 matches
+  class_16 (inner_r): 0.000000 over 0 matches
+  class_17 (inner_post): 0.000000 over 0 matches
+  class_18 (inner_l): 0.000000 over 0 matches
+  class_19 (outer_ant): 0.000000 over 0 matches
+  class_20 (outer_r): 0.000000 over 0 matches
+  class_21 (outer_post): 0.000000 over 0 matches
+  class_22 (outer_l): 0.000000 over 0 matches

@@ -1,0 +1,31 @@
+s3:
+  bucket_name:
+  region:
+
+model_paths:
+    # Optional legacy pose model
+    keypoints_model: "/home/jovyan/curling_analytics/models/yolo_11x_pose_best_2.pt"
+    # Detection model for 22 keypoint boxes (YOLO det). If set, it overrides pose model above.
+    keypoints_detector: "outputs/runs/yolo11_boxes25/train_20251009_152028/weights/best.pt"
+    groundingdino_config: "/home/jovyan/curling_analytics/models/groundingdino/config/GroundingDINO_SwinT_OGC.py"
+    groundingdino_weights: "/home/jovyan/curling_analysis/src/weights/groundingdino_swint_ogc.pth" 
+    sam_weights: "/home/jovyan/curling_analysis/src/weights/sam_vit_l_0b3195.pth"
+
+paths:
+  raw_data: "data/raw/"
+  video_data: "data/videos/"
+  processed_data: "data/processed/"
+  output_dir: "outputs/"
+  # Added for experiments
+  annotations_xml: "data/Curling_keypoints_data/annotations.xml"
+  val_images_dir: "data/curling_yolo11_boxes25/images/val"
+  predicted_csv: "data/curling_yolo11_boxes25/predicted_keypoints.csv"
+  yolo_dataset_root: "data/curling_yolo11_boxes25"
+  yolo_dataset_yaml: "data/curling_yolo11_boxes25/data.yaml"
+  runs_dir: "outputs/runs/yolo11_boxes25"
+  cvat_dataset_root: "data/Curling_keypoints_data"
+  base_model_weights: "yolo11s.pt"
+
+model_params:
+  confidence_threshold: 0.3
+  team_colors: ["red", "yellow"]

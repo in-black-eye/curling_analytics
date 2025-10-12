@@ -1,0 +1,11 @@
+.DS_Store
+data/videos/
+# Large files are handled by Git LFS
+# *.pt
+# *.mp4
+# outputs/
+# models/
+
+# Files too large for GitHub (over 100MB)
+models/stones_detection_and_classification_11s.pt
+

@@ -1,0 +1,11 @@
+boto3
+opencv-python
+numpy
+pandas
+matplotlib
+PyYAML
+scikit-learn
+pdfkit 
+ultralytics>=8.2.0
+torch
+torchvision

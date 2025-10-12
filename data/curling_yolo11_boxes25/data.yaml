@@ -1,0 +1,5 @@
+path: "/Users/glytov_ivan/Documents/curling/curling_analytics/data/curling_yolo11_boxes25"
+train: images/train
+val: images/val
+nc: 23
+names: ['22_keypoints', 'l_hog', 'r_hog', 'l_back', 'r_back', 'l_tee', 'r_tee', 'hog_central', 'p_central', 'center', 'a_central', 'button_ant', 'button_r', 'button_post', 'button_l', 'inner_ant', 'inner_r', 'inner_post', 'inner_l', 'outer_ant', 'outer_r', 'outer_post', 'outer_l']
