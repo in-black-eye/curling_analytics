@@ -204,11 +204,17 @@ class SimpleTracker:
 #########################
 
 
-def detect_and_track_stones(video_path: str, homography_matrix: np.ndarray) -> list[dict]:
+def detect_and_track_stones(video_path: str, homography_matrix: np.ndarray, use_bytetrack: bool = True) -> list[dict]:
     """
     :return: список треков камней
+    :param use_bytetrack: использовать ByteTrack вместо SimpleTracker
     """
-
+    
+    if use_bytetrack:
+        from src.simple_tracker import track_stones_with_simple_tracker
+        return track_stones_with_simple_tracker(video_path, homography_matrix)
+    
+    # Fallback to original SimpleTracker implementation
     cap = cv2.VideoCapture(video_path)
     if not cap.isOpened():
         raise FileNotFoundError(f"Не удалось открыть видео: {video_path}")

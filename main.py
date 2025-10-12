@@ -30,10 +30,23 @@ def main():
 
     homography_matrix = compute_homography_matrix(keypoints)
 
-    stone_tracks = detect_and_track_stones(video_path, homography_matrix)
+    # Используем ByteTrack для более точного трекинга
+    stone_tracks = detect_and_track_stones(video_path, homography_matrix, use_bytetrack=True)
 
     create_birdseye_view(stone_tracks, config['paths']['output_dir'])
     plot_throw_progression(stone_tracks, config['paths']['output_dir'])
+    
+    # Создаем анимированное видео с ByteTrack
+    from src.animated_visualizations import create_birdseye_video_with_legend
+    video_path_animated = create_birdseye_video_with_legend(
+        stone_tracks=stone_tracks,
+        output_dir=config['paths']['output_dir'],
+        fps=30,
+        court_size_cm=(500, 1300),
+        img_size=(800, 2080),
+        use_bytetrack=True
+    )
+    print(f"✅ Анимированное видео создано: {video_path_animated}")
 
     # Optional judging/statistics could be implemented later
 

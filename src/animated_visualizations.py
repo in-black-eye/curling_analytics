@@ -182,9 +182,10 @@ def create_birdseye_video(stone_tracks: List[Dict], output_dir: str,
 
 def create_birdseye_video_with_legend(stone_tracks: List[Dict], output_dir: str, 
                                     fps: int = 30, court_size_cm: Tuple[int, int] = (500, 1300),
-                                    img_size: Tuple[int, int] = (800, 2080)) -> str:
+                                    img_size: Tuple[int, int] = (800, 2080),
+                                    use_bytetrack: bool = True) -> str:
     """
-    Расширенная версия с легендой команд.
+    Расширенная версия с легендой команд и поддержкой ByteTrack.
     """
     os.makedirs(output_dir, exist_ok=True)
     
@@ -252,6 +253,7 @@ def create_birdseye_video_with_legend(stone_tracks: List[Dict], output_dir: str,
             for track in stone_tracks:
                 team = track.get("team", "red")
                 color = colors.get(team, (0, 0, 0))
+                stone_id = track.get("stone_id", "?")
                 
                 trajectory_points = []
                 for pos in track.get("positions_real", []):
@@ -275,12 +277,24 @@ def create_birdseye_video_with_legend(stone_tracks: List[Dict], output_dir: str,
                     current_pos = trajectory_points[-1]
                     cv2.circle(img, current_pos, 6, color, -1, cv2.LINE_AA)
                     cv2.circle(img, current_pos, 8, (255, 255, 255), 2, cv2.LINE_AA)
+                    
+                    # Добавляем ID трека (только для ByteTrack)
+                    if use_bytetrack:
+                        cv2.putText(img, f"ID:{stone_id}", 
+                                   (current_pos[0] + 10, current_pos[1] - 10),
+                                   cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 2)
             
             # Добавляем легенду в левом верхнем углу
             legend_y = 30
             cv2.putText(img, "CURLING ANALYSIS", (10, legend_y), 
                        cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 0), 2)
             legend_y += 35
+            
+            # Информация о трекере
+            tracker_name = "ByteTrack" if use_bytetrack else "SimpleTracker"
+            cv2.putText(img, f"Tracker: {tracker_name}", (10, legend_y), 
+                       cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 2)
+            legend_y += 25
             
             cv2.putText(img, f"Frame: {frame_num}", (10, legend_y), 
                        cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 2)
