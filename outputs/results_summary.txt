@@ -1,0 +1,33 @@
+CURLING ANALYSIS RESULTS SUMMARY
+==================================================
+
+Video: data/videos/example_4.mp4
+Analysis Date: 2025-10-12 14:41:29
+
+Total Stones Detected: 2
+
+Team Statistics:
+  Red Team: 1 stones
+  Yellow Team: 1 stones
+
+Stone Details:
+------------------------------
+
+Stone 1:
+  ID: 1
+  Team: red
+  Positions: 30
+  Start Position: (100.00, 200.00)
+  End Position: (245.00, 258.00)
+  Distance Traveled: 156.17 cm
+
+Stone 2:
+  ID: 2
+  Team: yellow
+  Positions: 30
+  Start Position: (150.00, 150.00)
+  End Position: (266.00, 141.00)
+  Distance Traveled: 116.35 cm
+
+==================================================
+Analysis completed successfully!
